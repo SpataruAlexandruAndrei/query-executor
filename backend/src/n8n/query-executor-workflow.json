@@ -1,0 +1,108 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "query-executor-workflow",
+        "responseMode": "lastNode",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "id": "8cc3a092-68d4-43e1-b935-a96fd9503f73",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "webhookId": "eb5a00d3-ec5c-4522-85df-6f8cd13d954f"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{$node[\"Webhook\"].json[\"body\"].workflowData.query}}"
+      },
+      "id": "dff36962-34a2-4271-9fee-f5afc4e1c7fe",
+      "name": "MySQL",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 1,
+      "position": [220, 0],
+      "credentials": {
+        "mySql": {
+          "id": "Iee2HLYEfAExieUp",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Format timestamps\nif (Array.isArray(items[0].json)) {\n  for (const item of items[0].json) {\n    if (item.created_at) {\n      // Format to YYYY-MM-DD HH:MM:SS\n      const date = new Date(item.created_at);\n      item.created_at = date.toISOString().replace('T', ' ').substring(0, 19);\n    }\n  }\n}\nreturn items;"
+      },
+      "id": "57649206-9292-4468-8a79-cb8e91ceaf1d",
+      "name": "Function",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseCode": 200,
+          "responseKey": ""
+        }
+      },
+      "id": "9b414373-178e-4a69-bc18-0bf307e735fb",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [660, 0]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "MySQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MySQL": {
+      "main": [
+        [
+          {
+            "node": "Function",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8046b441-f6bc-4ed8-ac51-a37c33dc1363",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ee424778e557fc123a7caf3d428fe140e7a010137b29ebdf6e00262116e3ff69"
+  },
+  "id": "VExNuxxFnC0TXgZq",
+  "tags": []
+}
